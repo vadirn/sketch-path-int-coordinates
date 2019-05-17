@@ -1,0 +1,43 @@
+const onRun = function(context) {
+  const sketch = require('sketch');
+  const ShapePath = require('sketch/dom').ShapePath;
+
+  function round(d) {
+    const pts = d.split(" ");
+    return pts.map(pt => {
+      if (hasCommand(pt)) {
+        const command = pt[0];
+        return `${command}${pt
+          .substr(1)
+          .split(",")
+          .map(n => Math.round(parseFloat(n)))
+          .join(",")}`;
+      }
+      return `${pt
+        .split(",")
+        .map(n => Math.round(parseFloat(n)))
+        .join(",")}`;
+    }).join(' ');
+  }
+
+  function hasCommand(pt) {
+    const char = pt[0];
+    return char.toLowerCase().match(/[a-z]/i);
+  }
+
+  const document = sketch.getSelectedDocument();
+  document.selectedLayers.forEach(layer => {
+    if (layer.type === 'ShapePath') {
+      const d = layer.getSVGPath();
+      const dd = round(d);
+      const newLayer = ShapePath.fromSVGPath(dd);
+      newLayer.parent = layer.parent;
+      newLayer.style = layer.style;
+      newLayer.name = layer.name;
+      newLayer.index = layer.index;
+      layer.name = `${layer.name} (original)`;
+      layer.hidden = true;
+    }
+  });
+};
+          
